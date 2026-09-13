@@ -1,0 +1,95 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Home Assistant Community App: File Explorer
+# Prepares the data directory and writes the File Browser configuration
+# ==============================================================================
+declare api_log_levels
+declare auto_login
+declare log_levels
+declare password
+
+# Everything File Browser keeps of its own lives here: the database with the
+# accounts, settings and shares, and the cache with the thumbnails and the
+# search index.
+mkdir -p /data/filebrowser/cache
+
+# Ingress runs behind Home Assistant, which has established who is asking long
+# before a request gets here, so File Browser is told to take that word for it,
+# and hands each Home Assistant user an account of their own. Without it, File
+# Browser asks for a login of its own, over Ingress and over the published port
+# alike.
+auto_login=false
+if bashio::config.true 'ingress_auto_login'; then
+    auto_login=true
+fi
+
+if bashio::var.false "${auto_login}" && ! bashio::config.has_value 'password'; then
+    bashio::exit.nok \
+        "File Browser has been set to ask for a login of its own, but there is" \
+        "no password to log in with. Please set the 'password' option, or turn" \
+        "'ingress_auto_login' back on to have Home Assistant sign you in."
+fi
+
+# File Browser refuses a password shorter than this, and does so by exiting
+# rather than by refusing the password, which would leave the app restarting
+# forever with no word about why.
+if bashio::config.has_value 'password'; then
+    password=$(bashio::config 'password')
+    if [[ "${#password}" -lt 5 ]]; then
+        bashio::exit.nok \
+            "The 'password' option must be at least 5 characters long."
+    fi
+fi
+
+# File Browser keeps a level of its own for the API requests it serves, which
+# are far too many to be interesting unless something is going wrong. Both
+# lists are explicit: File Browser only shows the levels it is handed, and
+# "fatal" is a level of its own rather than a kind of error.
+log_levels="info|warning|error|fatal"
+api_log_levels="warning|error|fatal"
+case "$(bashio::string.lower "$(bashio::config 'log_level' 'info')")" in
+    trace|debug)
+        log_levels="debug|info|warning|error|fatal"
+        api_log_levels="info|warning|error|fatal"
+        ;;
+    info|notice)
+        log_levels="info|warning|error|fatal"
+        ;;
+    warning)
+        log_levels="warning|error|fatal"
+        ;;
+    error)
+        log_levels="error|fatal"
+        api_log_levels="error|fatal"
+        ;;
+    fatal)
+        log_levels="fatal"
+        api_log_levels="fatal"
+        ;;
+esac
+
+bashio::var.json \
+    api_log_levels "${api_log_levels}" \
+    auto_login "^${auto_login}" \
+    log_levels "${log_levels}" \
+    | tempio \
+        -template /etc/filebrowser/config.gtpl \
+        -out /etc/filebrowser/config.yaml
+
+if bashio::var.true "${auto_login}"; then
+    bashio::log.info \
+        "Home Assistant signs you in over Ingress, and every Home Assistant" \
+        "user gets a File Browser account of their own."
+
+    if ! bashio::config.has_value 'password' \
+        && bashio::var.has_value "$(bashio::app.port 80)";
+    then
+        bashio::log.notice
+        bashio::log.notice "The published port asks for a login, but there is"
+        bashio::log.notice "no password to give it: set the 'password' option"
+        bashio::log.notice "to use it from a browser. WebDAV and the API take"
+        bashio::log.notice "an API token, which is made from within File Browser."
+        bashio::log.notice
+    fi
+fi

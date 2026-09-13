@@ -1,0 +1,14 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Home Assistant Community App: File Explorer
+# Runs the NGINX daemon
+# ==============================================================================
+
+# Wait for File Browser to become available. It checks the search index it
+# kept from last time before it begins listening, which takes a moment on a
+# large one.
+bashio::net.wait_for 48080 127.0.0.1 900
+
+bashio::log.info "Starting NGINX..."
+exec nginx

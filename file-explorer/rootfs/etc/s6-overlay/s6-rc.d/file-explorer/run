@@ -1,0 +1,29 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Home Assistant Community App: File Explorer
+# Runs the File Browser server
+# ==============================================================================
+
+export FILEBROWSER_CONFIG="/etc/filebrowser/config.yaml"
+
+# The password of the "admin" account, which is the one behind the password
+# login. File Browser applies it every time it starts, so the option is what
+# the password is, and a change made from within File Browser does not
+# survive a restart.
+#
+# Without the option, the account is given a fresh random password on every
+# start and nobody is told what it is. That is the intended state: the account
+# has to exist, since File Browser makes it on first start and hangs the
+# password login off it, but with Home Assistant doing the signing in there is
+# nothing that should be able to log in to it.
+if bashio::config.has_value 'password'; then
+    FILEBROWSER_ADMIN_PASSWORD=$(bashio::config 'password')
+else
+    FILEBROWSER_ADMIN_PASSWORD=$(head -c 48 /dev/urandom | base64 | tr -d '\n')
+fi
+export FILEBROWSER_ADMIN_PASSWORD
+
+bashio::log.info "Starting File Browser..."
+
+exec filebrowser

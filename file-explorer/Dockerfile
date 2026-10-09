@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Setup base
 ARG BUILD_ARCH=amd64
-ARG FILEBROWSER_VERSION="v1.5.8-stable"
+ARG FILEBROWSER_VERSION="v2.0.0-stable"
 
 # FileBrowser Quantum publishes a single static binary per architecture, with
 # the web frontend built in. It is compiled against musl, which is what makes

@@ -19,6 +19,12 @@ configuration:
       Let Home Assistant sign you in when you open this app from the sidebar,
       with an account of your own named after your Home Assistant user. Turn it
       off to have File Browser ask for the `admin` password instead.
+  extra_sources:
+    name: Extra sources
+    description: >-
+      More directories to show as sources of their own, each with a name and a
+      path, such as a drive mounted inside the media directory. A source shows
+      the used and free space of the drive it is on.
   ssl:
     name: SSL
     description: >-

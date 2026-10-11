@@ -6,6 +6,7 @@
 # ==============================================================================
 declare api_log_levels
 declare auto_login
+declare extra_sources
 declare log_levels
 declare password
 
@@ -69,9 +70,16 @@ case "$(bashio::string.lower "$(bashio::config 'log_level' 'info')")" in
         ;;
 esac
 
+# Directories to show as sources of their own, such as a drive mounted inside
+# the media directory. File Browser works out the space of a source from the
+# disk it sits on, so a drive inside "media" would otherwise show the size of
+# the disk Home Assistant lives on.
+extra_sources=$(bashio::jq "$(bashio::app.config)" '.extra_sources // []')
+
 bashio::var.json \
     api_log_levels "${api_log_levels}" \
     auto_login "^${auto_login}" \
+    extra_sources "^${extra_sources}" \
     log_levels "${log_levels}" \
     | tempio \
         -template /etc/filebrowser/config.gtpl \

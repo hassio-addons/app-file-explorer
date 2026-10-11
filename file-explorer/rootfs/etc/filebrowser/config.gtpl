@@ -68,6 +68,13 @@ server:
       name: "ssl"
       config:
         defaultEnabled: true
+    # Any directories added with the "extra_sources" option.
+{{- range .extra_sources }}
+    - path: {{ .path | toJson }}
+      name: {{ .name | toJson }}
+      config:
+        defaultEnabled: true
+{{- end }}
 
 auth:
   # The account behind the password login, and the one name Ingress is never

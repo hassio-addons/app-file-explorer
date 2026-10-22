@@ -19,7 +19,7 @@ ARG FILEBROWSER_VERSION="v1.5.8-stable"
 RUN \
     apk add --no-cache \
         mailcap=2.1.54-r0 \
-        nginx=1.30.4-r1 \
+        nginx=1.30.6-r0 \
     \
     && if [[ "${BUILD_ARCH}" = "aarch64" ]]; then ARCH="arm64"; fi \
     && if [[ "${BUILD_ARCH}" = "amd64" ]]; then ARCH="amd64"; fi \

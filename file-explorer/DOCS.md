@@ -17,6 +17,8 @@ up with these Home Assistant directories as its sources:
 - `share`: the directory apps share files through.
 - `ssl`: your certificates and private keys.
 
+More can be added with the [`extra_sources`](#option-extra_sources) option.
+
 ## Installation
 
 The installation of this app is pretty straightforward and not different in
@@ -75,6 +77,9 @@ Example app configuration:
 log_level: info
 password: correct-horse-battery-staple
 ingress_auto_login: true
+extra_sources:
+  - name: usb-drive
+    path: /media/usb-drive
 ssl: true
 certfile: fullchain.pem
 keyfile: privkey.pem
@@ -132,6 +137,27 @@ is `true` by default. See [How signing in works](#how-signing-in-works).
 With it off, File Browser asks for a login everywhere, and the
 [`password`](#option-password) option is required, since without it there
 would be nothing to log in with.
+
+### Option: `extra_sources`
+
+More directories to show as sources of their own, each with a `name` for the
+sidebar and a `path`, for example a drive mounted inside the media directory:
+
+```yaml
+extra_sources:
+  - name: usb-drive
+    path: /media/usb-drive
+```
+
+File Browser works out the used and free space of a source from the disk it
+sits on, and a link to a folder inside a source shows the same numbers as the
+source. A drive mounted inside `media` therefore shows the size of the disk
+Home Assistant lives on, until it is a source of its own.
+
+The path has to be somewhere this app can see, so inside one of the
+directories above. New accounts get the extra sources straight away; an
+account that already exists gets one added from the user management page in
+File Browser's settings.
 
 ### Option: `ssl`
 
